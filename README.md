@@ -1,1 +1,1 @@
-Repo for storing tasks in the process of studying Go.
+## Repo for storing tasks in the process of studying Go.
