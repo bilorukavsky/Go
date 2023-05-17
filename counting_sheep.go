@@ -12,4 +12,4 @@ func CountSheeps(numbers []bool) int {
 	return sum
 }
 
-func main{}
+func main(){}
