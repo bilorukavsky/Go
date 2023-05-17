@@ -9,4 +9,4 @@ func century(year int) int {
    return year / 100+1
 }
 
-func main{}
+func main(){}
