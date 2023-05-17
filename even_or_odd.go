@@ -9,4 +9,4 @@ func EvenOrOdd(number int) string {
 	return "Odd"
 }
 
-func main() {}
+func main(){}
