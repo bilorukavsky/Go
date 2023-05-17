@@ -10,4 +10,4 @@ func SquareSum(numbers []int) int {
 	return summ
 }
 
-func main{}
+func main(){}
