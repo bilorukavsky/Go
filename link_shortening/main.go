@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
 const baseURL = "http://localhost:8080/"
@@ -32,6 +33,11 @@ func shortHandler(w http.ResponseWriter, r *http.Request) {
 	var req Origin
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil { // Разбор JSON-тела запроса
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if len(req.URL) < 8 {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
 
@@ -75,8 +81,8 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func generateShortURL(longURL string) string {
-	encoded := base64.StdEncoding.EncodeToString([]byte(longURL)) // Кодирование длинного URL-адреса в base64
-	path := encoded[:8]                                           // Формирование короткого URL-адреса
+	encoded := base64.StdEncoding.EncodeToString([]byte(longURL))      // Кодирование длинного URL-адреса в base64
+	path := strings.ToLower(encoded[len(encoded)-10 : len(encoded)-2]) // Формирование короткого URL-адреса
 	return path
 }
 
@@ -88,4 +94,5 @@ func main() {
 	http.HandleFunc("/short", shortHandler) // Обработчик для сокращения URL-адреса
 
 	log.Fatal(http.ListenAndServe(":8080", nil)) // Запуск сервера на порту 8080
+
 }

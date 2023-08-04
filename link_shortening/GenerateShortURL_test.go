@@ -6,24 +6,36 @@ import (
 )
 
 func TestGenerateShortURL(t *testing.T) {
-	longURL := "https://www.example.com/some/long/url"
-	expectedShortURL := "aHR0cHM6"
+	// Тест длинным URL-адресом 1
+	longURL1 := "https://www.example.com/some/long/url"
+	expectedShortURL1 := "5nl3vyba"
 
-	shortURL := generateShortURL(longURL)
+	shortURL1 := generateShortURL(longURL1)
 
-	if shortURL != expectedShortURL {
-		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL, shortURL)
+	if shortURL1 != expectedShortURL1 {
+		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL1, shortURL1)
 	}
 	log.Println("Тест 1 пройден успешно")
 
-	// Тест с другим длинным URL-адресом
-	anotherLongURL := "https://www.example.com/another/long/url"
-	anotherExpectedShortURL := "aHR0cHM6"
+	// Тест длинным URL-адресом 2
+	LongURL2 := "https://www.example.com/another"
+	expectedShortURL2 := "5vdghlcg"
 
-	anotherShortURL := generateShortURL(anotherLongURL)
+	ShortURL2 := generateShortURL(LongURL2)
 
-	if anotherShortURL != anotherExpectedShortURL {
-		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", anotherExpectedShortURL, anotherShortURL)
+	if ShortURL2 != expectedShortURL2 {
+		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL2, ShortURL2)
 	}
 	log.Println("Тест 2 пройден успешно")
+
+	// Тест длинным URL-адресом 3
+	LongURL3 := "https://www.example.com"
+	expectedShortURL3 := "bszs5jb2"
+
+	ShortURL3 := generateShortURL(LongURL3)
+
+	if ShortURL3 != expectedShortURL3 {
+		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL3, ShortURL3)
+	}
+	log.Println("Тест 3 пройден успешно")
 }
