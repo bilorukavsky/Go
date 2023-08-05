@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 const baseURL = "http://localhost:8080/"
@@ -22,7 +25,7 @@ type Response struct {
 	Data any `json:"data"`
 }
 
-var shortURLs map[string]string // Карта для хранения соответствий коротких и длинных URL-адресов
+var db *sql.DB
 
 func shortHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -42,7 +45,12 @@ func shortHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := generateShortURL(req.URL) // Генерация сокращенного URL-адреса
-	shortURLs[shortURL] = req.URL         // Сохранение соответствия короткого и длинного URL-адресов
+
+	_, err := db.Exec("INSERT INTO short_urls (short_url, long_url) VALUES ($1, $2)", shortURL, req.URL)
+	if err != nil {
+		http.Error(w, "Failed to save short URL", http.StatusInternalServerError)
+		return
+	}
 
 	resp := Response{
 		Shortened{
@@ -71,8 +79,9 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := r.URL.Path[len("/"):]
-	longURL, ok := shortURLs[shortURL] // Поиск соответствующего длинного URL-адреса по короткому URL-адресу
-	if !ok {
+	var longURL string
+	err := db.QueryRow("SELECT long_url FROM short_urls WHERE short_url = $1", shortURL).Scan(&longURL)
+	if err != nil {
 		http.NotFound(w, r) // Если короткий URL-адрес не найден, возвращается ошибка 404
 		return
 	}
@@ -87,12 +96,17 @@ func generateShortURL(longURL string) string {
 }
 
 func main() {
-	shortURLs = make(map[string]string) // Инициализация карты
+	var err error
+	db, err = sql.Open("postgres", "user=postgres dbname=postgres sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
-	// Установка обработчиков для HTTP-запросов
-	http.HandleFunc("/", redirectHandler)   // Обработчик для перенаправления
-	http.HandleFunc("/short", shortHandler) // Обработчик для сокращения URL-адреса
+	http.HandleFunc("/", redirectHandler)
+	http.HandleFunc("/short", shortHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil)) // Запуск сервера на порту 8080
-
+	log.Printf("Serever start")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("тут")
 }
