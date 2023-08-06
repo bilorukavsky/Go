@@ -1,6 +1,6 @@
 //https://www.codewars.com/kata/54edbc7200b811e956000556/go
 
-package main
+package codewars
 
 func CountSheeps(numbers []bool) int {
 	var sum int = 0
@@ -11,5 +11,3 @@ func CountSheeps(numbers []bool) int {
 	}
 	return sum
 }
-
-func main(){}
