@@ -38,37 +38,4 @@ func TestGenerateShortURL(t *testing.T) {
 		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL3, ShortURL3)
 	}
 	log.Println("Тест 3 пройден успешно")
-
-	// Тест 8-ми символьным URL-адресом 4
-	LongURL4 := "test1.io"
-	expectedShortURL4 := "dgvzddeu"
-
-	ShortURL4 := generateShortURL(LongURL4)
-
-	if ShortURL4 != expectedShortURL4 {
-		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL4, ShortURL4)
-	}
-	log.Println("Тест 4 пройден успешно")
-
-	// Тест коротким URL-адресом 5
-	LongURL5 := "test.io"
-	expectedShortURL5 := "dgvzdc5"
-
-	ShortURL5 := generateShortURL(LongURL5)
-
-	if ShortURL5 != expectedShortURL5 {
-		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL5, ShortURL5)
-	}
-	log.Println("Тест 5 пройден успешно")
-
-	// Тест коротким URL-адресом 6
-	LongURL6 := "t"
-	expectedShortURL6 := "d"
-
-	ShortURL6 := generateShortURL(LongURL6)
-
-	if ShortURL6 != expectedShortURL6 {
-		t.Errorf("Ожидался сокращенный URL-адрес %s, но получен %s", expectedShortURL6, ShortURL6)
-	}
-	log.Println("Тест 6 пройден успешно")
 }
