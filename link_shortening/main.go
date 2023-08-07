@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -24,6 +25,11 @@ type Response struct {
 
 var shortURLs map[string]string // Карта для хранения соответствий коротких и длинных URL-адресов
 
+func isValidURL(longURL string) bool {
+	parse, err := url.Parse(longURL)
+	return err == nil && parse.Host != "" //&& parse.Scheme != ""
+}
+
 func shortHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -36,8 +42,8 @@ func shortHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(req.URL) < 8 {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+	if isValidURL(req.URL) != true {
+		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
 
@@ -81,9 +87,12 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func generateShortURL(longURL string) string {
-	encoded := base64.StdEncoding.EncodeToString([]byte(longURL))      // Кодирование длинного URL-адреса в base64
-	path := strings.ToLower(encoded[len(encoded)-10 : len(encoded)-2]) // Формирование короткого URL-адреса
-	return path
+	encoded := base64.StdEncoding.EncodeToString([]byte(longURL)) // Кодирование длинного URL-адреса в base64
+	if len(longURL) <= 8 {
+		return strings.ToLower(encoded[:len(longURL)]) // Либо return longURL если возвращать без изменений
+	} else {
+		return strings.ToLower(encoded[len(encoded)-10 : len(encoded)-2])
+	}
 }
 
 func main() {
