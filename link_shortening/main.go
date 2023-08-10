@@ -1,15 +1,11 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
-
-	_ "github.com/lib/pq"
 )
 
 const baseURL = "http://localhost:8080/"
@@ -25,8 +21,6 @@ type Shortened struct {
 type Response struct {
 	Data any `json:"data"`
 }
-
-var db *sql.DB
 
 func shortHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -47,10 +41,10 @@ func shortHandler(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := generateShortURL(req.URL) // Генерация сокращенного URL-адреса
 
-	_, err := db.Exec("INSERT INTO short_urls (short_url, long_url) VALUES ($1, $2)", shortURL, req.URL)
+	err := saveShortURL(shortURL, req.URL)
 	if err != nil {
 		http.Error(w, "Failed to save short URL", http.StatusInternalServerError)
-		fmt.Println("Failed to save short URL, reason:", err)
+		log.Println("Failed to save short URL, reason:", err)
 		return
 	}
 
@@ -81,8 +75,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := r.URL.Path[len("/"):]
-	var longURL string
-	err := db.QueryRow("SELECT long_url FROM short_urls WHERE short_url = $1", shortURL).Scan(&longURL)
+	longURL, err := getLongURL(shortURL)
 	if err != nil {
 		http.NotFound(w, r) // Если короткий URL-адрес не найден, возвращается ошибка 404
 		return
@@ -99,12 +92,8 @@ func generateShortURL(longURL string) string {
 }
 
 func main() {
-	var err error
-	db, err = sql.Open("postgres", "user=postgres dbname=url_shortener sslmode=disable")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+	initializeDB()
+	defer closeDB()
 
 	http.HandleFunc("/", redirectHandler)
 	http.HandleFunc("/short", shortHandler)
