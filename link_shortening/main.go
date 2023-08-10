@@ -22,8 +22,6 @@ type Response struct {
 	Data any `json:"data"`
 }
 
-var shortURLs map[string]string // Карта для хранения соответствий коротких и длинных URL-адресов
-
 func shortHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -42,7 +40,13 @@ func shortHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := generateShortURL(req.URL) // Генерация сокращенного URL-адреса
-	shortURLs[shortURL] = req.URL         // Сохранение соответствия короткого и длинного URL-адресов
+
+	err := saveShortURL(shortURL, req.URL)
+	if err != nil {
+		http.Error(w, "Failed to save short URL", http.StatusInternalServerError)
+		log.Println("Failed to save short URL, reason:", err)
+		return
+	}
 
 	resp := Response{
 		Shortened{
@@ -71,8 +75,8 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := r.URL.Path[len("/"):]
-	longURL, ok := shortURLs[shortURL] // Поиск соответствующего длинного URL-адреса по короткому URL-адресу
-	if !ok {
+	longURL, err := getLongURL(shortURL)
+	if err != nil {
 		http.NotFound(w, r) // Если короткий URL-адрес не найден, возвращается ошибка 404
 		return
 	}
@@ -84,15 +88,16 @@ func generateShortURL(longURL string) string {
 	encoded := base64.StdEncoding.EncodeToString([]byte(longURL))      // Кодирование длинного URL-адреса в base64
 	path := strings.ToLower(encoded[len(encoded)-10 : len(encoded)-2]) // Формирование короткого URL-адреса
 	return path
+
 }
 
 func main() {
-	shortURLs = make(map[string]string) // Инициализация карты
+	initializeDB()
+	defer closeDB()
 
-	// Установка обработчиков для HTTP-запросов
-	http.HandleFunc("/", redirectHandler)   // Обработчик для перенаправления
-	http.HandleFunc("/short", shortHandler) // Обработчик для сокращения URL-адреса
+	http.HandleFunc("/", redirectHandler)
+	http.HandleFunc("/short", shortHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil)) // Запуск сервера на порту 8080
-
+	log.Printf("Server start")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
