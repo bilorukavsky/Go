@@ -25,9 +25,16 @@ type Response struct {
 
 var shortURLs map[string]string // Карта для хранения соответствий коротких и длинных URL-адресов
 
-func isValidURL(longURL string) bool {
-	parse, err := url.Parse(longURL)
-	return err == nil && parse.Host != "" //&& parse.Scheme != ""
+func parseURL(providedUrl string) (*url.URL, error) {
+	parsed, err := url.Parse(providedUrl)
+	if err != nil {
+		return nil, err
+	}
+	return parsed, nil
+}
+
+func isValidURL(url *url.URL) bool {
+	return url.Host != ""
 }
 
 func shortHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +49,8 @@ func shortHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if isValidURL(req.URL) != true {
+	prURL, err := parseURL(req.URL)
+	if !isValidURL(prURL) || err != nil {
 		http.Error(w, "Invalid URL", http.StatusBadRequest)
 		return
 	}
